@@ -52,10 +52,11 @@ def create_simple_project(title, client, token)
   project.upload(devs_data, blueprint, 'devs')
 
   # create a metric
-  metric = project.facts('fact.lines_changed').create_metric title: 'line_count'
-  metric = project.facts('fact.lines_changed').create_metric title: 'line_count'
-  metric.lock
-  metric.save
+  ['fact.lines_changed', 'fact.coffee_cups'].each do |m|
+    metric = project.facts(m).create_metric title: m
+    metric.lock
+    metric.save
+  end
 
   ########################
   # Create new dashboard #
@@ -68,7 +69,7 @@ def create_simple_project(title, client, token)
   dashboard.save
 
   puts "Created project #{project.pid}"
-  project
+  [project, blueprint]
 end
 
 def add_metric(project)
@@ -79,6 +80,38 @@ def add_metric(project)
   report.lock
   report.save
 
+  dashboard = project.dashboards.first
+  tab = dashboard.tabs.first
+
+  tab.add_report_item(:report => report, :position_x => 10, :position_y => 20, size_y: 450, size_x: 400)
+  dashboard.lock
+  dashboard.save
+end
+
+def add_report(project, opts = {})
+  what = opts[:what]
+  how = opts[:how]
+  type = opts[:type]
+  title = opts[:title]
+
+  metric = project.metric_by_title what
+  label = project.labels how
+  spec_part = type == 'chart' ? { chart_part: { value_uri: label.uri} } : {}
+  params = { title: title, top: [metric], left: [how], format: type }.merge spec_part
+  report = project.create_report params
+  report.lock
+  report
+end
+
+def top_left_position
+  { :position_x => 10, :position_y => 20, size_y: 450, size_x: 400 }
+end
+
+def top_right_position
+  { :position_x => 450, :position_y => 20, size_y: 450, size_x: 400 }
+end
+
+def add_to_dashboard
   dashboard = project.dashboards.first
   tab = dashboard.tabs.first
 
