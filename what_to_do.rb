@@ -24,3 +24,13 @@ require 'faker'
   dashboard.create_tab(title: Faker::Pokemon.move)
 end
 dashboard.save
+
+# save patch
+class GoodData::Dashboard
+  def save
+    puts "Do you really want to delete #{title}?"
+    input = gets.chomp
+    super if input == 'yes'
+  end
+end
+dashboard.save
