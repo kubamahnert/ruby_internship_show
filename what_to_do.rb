@@ -17,3 +17,10 @@ tab.add_report_item({ report: report }.merge top_right_position)
 data = CSV.read 'commit_data.csv'
 project.methods.grep /upload/
 project.upload data, blueprint, 'commits'
+
+# times demo
+require 'faker'
+5.times do
+  dashboard.create_tab(title: Faker::Pokemon.move)
+end
+dashboard.save
